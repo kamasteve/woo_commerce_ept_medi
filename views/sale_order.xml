@@ -211,6 +211,17 @@
             ('state','not in',('draft','sent','cancel')),('woo_instance_id','=',active_id)]
         </field>
     </record>
+    <record id="view_pricelist_form_with_warehouse" model="ir.ui.view">
+        <field name="name">product.pricelist.form.with.warehouse</field>
+        <field name="model">product.pricelist</field>
+        <field name="inherit_id" ref="product.product_pricelist_form_view"/>
+        <field name="arch" type="xml">
+            <!-- Add the Warehouse field to the general tab -->
+            <xpath expr="//sheet//group" position="inside">
+                <field name="warehouse_id"/>
+            </xpath>
+        </field>
+    </record>
 
     <menuitem id="woo_sales_menu" name="Sales" parent="woo_commerce_ept.woo_commerce_main_menu" sequence="2"/>
 
