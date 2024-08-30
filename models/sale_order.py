@@ -1610,3 +1610,22 @@ class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
 
     woo_line_id = fields.Char()
+class ProductPricelist(models.Model):
+    _inherit = 'product.pricelist'
+
+    warehouse_id = fields.Many2one('stock.warehouse', string="Warehouse")
+    def update_prices_based_on_warehouse(self):
+        for record in self:
+            if record.warehouse_id:
+                for item in record.item_ids:
+                    warehouse_price = self.env['product.warehouse.sale_price'].search([
+                        ('product_id', '=', item.product_id.id),
+                        ('warehouse_id', '=', record.warehouse_id.id)
+                    ], limit=1)
+                    if warehouse_price:
+                        item.fixed_price = warehouse_price.sale_price
+    def write(self, vals):
+        res = super(ProductPricelist, self).write(vals)
+        if 'warehouse_id' in vals:
+            self.update_prices_based_on_warehouse()
+        return res
