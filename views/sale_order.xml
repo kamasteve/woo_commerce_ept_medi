@@ -217,9 +217,10 @@
         <field name="inherit_id" ref="product.product_pricelist_form_view"/>
         <field name="arch" type="xml">
             <!-- Add the Warehouse field to the general tab -->
-            <xpath expr="//sheet//group" position="inside">
-                <field name="warehouse_id"/>
-            </xpath>
+           <xpath expr="//field[@name='currency_id']" position="after">
+    <field name="warehouse_id"/>
+</xpath>
+
         </field>
     </record>
 
