@@ -1619,7 +1619,7 @@ class ProductPricelist(models.Model):
             if record.warehouse_id:
                 for item in record.item_ids:
                     warehouse_price = self.env['product.warehouse.sale_price'].search([
-                        ('product_id', '=', item.product_id.id),
+                        ('product_tmpl_id', '=', item.product_id.id),
                         ('warehouse_id', '=', record.warehouse_id.id)
                     ], limit=1)
                     if warehouse_price:
