@@ -1623,7 +1623,7 @@ class ProductPricelist(models.Model):
                         ('warehouse_id', '=', record.warehouse_id.id)
                     ], limit=1)
                     if warehouse_price:
-                        item.fixed_price = warehouse_price.sale_price
+                        item.fixed_price = warehouse_price.list_price
     def write(self, vals):
         res = super(ProductPricelist, self).write(vals)
         if 'warehouse_id' in vals:
