@@ -1614,18 +1614,32 @@ class ProductPricelist(models.Model):
     _inherit = 'product.pricelist'
 
     warehouse_id = fields.Many2one('stock.warehouse', string="Warehouse")
+    @api.onchange('warehouse_id')
+    def _onchange_warehouse_id(self):
+        if self.warehouse_id:
+            self.update_prices_based_on_warehouse()
     def update_prices_based_on_warehouse(self):
         for record in self:
             if record.warehouse_id:
-                for item in record.item_ids:
-                    warehouse_price = self.env['product.warehouse.sale_price'].search([
-                        ('product_tmpl_id', '=', item.product_id.id),
-                        ('warehouse_id', '=', record.warehouse_id.id)
-                    ], limit=1)
-                    if warehouse_price:
-                        item.fixed_price = warehouse_price.list_price
-    def write(self, vals):
-        res = super(ProductPricelist, self).write(vals)
-        if 'warehouse_id' in vals:
-            self.update_prices_based_on_warehouse()
-        return res
+                # Fetch all products associated with the selected warehouse
+                products = self.env['product.warehouse.sale_price'].search([
+                    ('warehouse_id', '=', record.warehouse_id.id)
+                ])
+                
+                # Prepare data for creating/updating pricelist items
+                pricelist_items = []
+                for product in products:
+                    existing_item = record.item_ids.filtered(lambda item: item.product_id.id == product.product_tmpl_id.id)
+                    if existing_item:
+                        existing_item.fixed_price = product.list_price
+                    else:
+                        pricelist_items.append((0, 0, {
+                            'product_id': product.product_tmpl_id.id,
+                            'fixed_price': product.list_price,
+                            'pricelist_id': record.id,
+                        }))
+                
+                # Update the one2many field in the pricelist
+                record.item_ids = [(5, 0, 0)]  # Clear existing items
+                record.item_ids = pricelist_items
+
