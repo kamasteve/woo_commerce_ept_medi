@@ -1635,6 +1635,8 @@ class ProductPricelist(models.Model):
                     else:
                         pricelist_items.append((0, 0, {
                             'product_id': product.product_tmpl_id.id,
+                            'product_tmpl_id':product.product_tmpl_id.id,
+                            'applied_on':'1_product',
                             'fixed_price': product.list_price,
                             'pricelist_id': record.id,
                         }))
