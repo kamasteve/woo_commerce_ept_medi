@@ -1623,9 +1623,9 @@ class ProductPricelist(models.Model):
             if record.warehouse_id:
                 # Fetch all products associated with the selected warehouse
                 products = self.env['product.warehouse.sale_price'].search([
-                    ('warehouse_id', '=', record.warehouse_id.id)
-                ])
-                
+                ('warehouse_id', '=', record.warehouse_id.id),
+                ('product_tmpl_id', '!=', False)  # Only select products that have a product_tmpl_id
+            ])
                 # Prepare data for creating/updating pricelist items
                 pricelist_items = []
                 for product in products:
