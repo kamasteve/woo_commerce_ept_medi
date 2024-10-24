@@ -1623,25 +1623,36 @@ class ProductPricelist(models.Model):
             if record.warehouse_id:
                 # Fetch all products associated with the selected warehouse
                 products = self.env['product.warehouse.sale_price'].search([
-                ('warehouse_id', '=', record.warehouse_id.id),
-                ('product_tmpl_id', '!=', False)  # Only select products that have a product_tmpl_id
-            ])
-                # Prepare data for creating/updating pricelist items
-                pricelist_items = []
-                for product in products:
-                    existing_item = record.item_ids.filtered(lambda item: item.product_id.id == product.product_tmpl_id.id)
-                    if existing_item:
-                        existing_item.fixed_price = product.list_price
-                    else:
-                        pricelist_items.append((0, 0, {
-                            'product_id': product.product_tmpl_id.id,
-                            'product_tmpl_id':product.product_tmpl_id.id,
-                            'applied_on':'1_product',
-                            'fixed_price': product.list_price,
-                            'pricelist_id': record.id,
-                        }))
+                    ('warehouse_id', '=', record.warehouse_id.id),
+                    ('product_tmpl_id', '!=', False)  # Only select products that have a product_tmpl_id
+                ])
                 
-                # Update the one2many field in the pricelist
-                record.item_ids = [(5, 0, 0)]  # Clear existing items
-                record.item_ids = pricelist_items
+                # Prepare data for creating/updating pricelist items
+                for product in products:
+                    # Check if a pricelist item for this product already exists
+                    existing_item = record.item_ids.filtered(lambda item: item.product_tmpl_id.id == product.product_tmpl_id.id)
+                    
+                    if existing_item:
+                        # Log for debugging
+                        _logger.info(f"Updating existing item for product: {product.product_tmpl_id.name}, with price: {product.list_price}")
+                        
+                        # Update the existing item's fixed price
+                        existing_item.write({
+                            'fixed_price': product.list_price
+                        })
+                    else:
+                        # Log for debugging
+                        _logger.info(f"Creating new pricelist item for product: {product.product_tmpl_id.name}, with price: {product.list_price}")
+                        
+                        # Add a new pricelist item
+                        record.write({
+                            'item_ids': [(0, 0, {
+                                'product_tmpl_id': product.product_tmpl_id.id,
+                                'applied_on': '1_product',
+                                'fixed_price': product.list_price,
+                                'pricelist_id': record.id,
+                            })]
+                        })
+
+
 
