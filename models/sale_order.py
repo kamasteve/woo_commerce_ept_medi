@@ -1664,7 +1664,7 @@ class ProductPricelist(models.Model):
                                 'compute_price':'fixed',
                                 'product_tmpl_id': product.product_tmpl_id.id,
                                 'applied_on': '1_product',
-                                'fixed_price': product.list_price,
+                                'fixed_price': 30,
                                 'pricelist_id': record.id,
                             })]
                         })
