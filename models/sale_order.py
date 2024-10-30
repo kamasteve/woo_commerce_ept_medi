@@ -1614,6 +1614,35 @@ class ProductPricelist(models.Model):
     _inherit = 'product.pricelist'
 
     warehouse_id = fields.Many2one('stock.warehouse', string="Warehouse")
+    @api.model
+    def create(self, vals):
+        # Custom logic before creation
+        # For example, logging or modifying values
+        if vals.get('name'):
+            vals['name'] = f"Custom - {vals['name']}"
+        
+        # Call the super method to perform the actual creation
+        pricelist = super(ProductPricelist, self).create(vals)
+
+        # Custom logic after creation
+        # For example, log the new pricelist id
+        _logger.info(f'Created new pricelist with ID: {pricelist.id}')
+
+        return pricelist
+
+    def write(self, vals):
+        # Custom logic before writing
+        if vals.get('active') is False:
+            _logger.warning(f'Deactivating pricelist {self.id} - {self.name}')
+
+        # Call the super method to perform the actual write
+        result = super(ProductPricelist, self).write(vals)
+
+        # Custom logic after writing
+        if 'website_id' in vals:
+            _logger.info(f'Updated website for pricelist {self.id} to {vals["website_id"]}')
+
+        return result
     @api.onchange('warehouse_id')
     def _onchange_warehouse_id(self):
         if self.warehouse_id:
