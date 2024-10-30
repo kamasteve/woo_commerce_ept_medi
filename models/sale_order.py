@@ -1661,9 +1661,10 @@ class ProductPricelist(models.Model):
                         # Add a new pricelist item
                         record.write({
                             'item_ids': [(0, 0, {
+                                'compute_price':'fixed',
                                 'product_tmpl_id': product.product_tmpl_id.id,
                                 'applied_on': '1_product',
-                                'price': product.list_price,
+                                'fixed_price': product.list_price,
                                 'pricelist_id': record.id,
                             })]
                         })
