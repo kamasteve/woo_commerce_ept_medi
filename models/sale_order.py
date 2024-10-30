@@ -1618,6 +1618,12 @@ class ProductPricelist(models.Model):
     def _onchange_warehouse_id(self):
         if self.warehouse_id:
             self.update_prices_based_on_warehouse()
+        else:
+            # Clear prices if no warehouse is selected, but you might want to consider 
+            # whether this is appropriate for your use case
+            for item in self.item_ids:
+                item.price = 0
+
     def update_prices_based_on_warehouse(self):
         for record in self:
             if record.warehouse_id:
@@ -1649,7 +1655,7 @@ class ProductPricelist(models.Model):
                             'item_ids': [(0, 0, {
                                 'product_tmpl_id': product.product_tmpl_id.id,
                                 'applied_on': '1_product',
-                                'fixed_price': product.list_price,
+                                'price': product.list_price,
                                 'pricelist_id': record.id,
                             })]
                         })
