@@ -219,6 +219,7 @@
             <!-- Add the Warehouse field to the general tab -->
            <xpath expr="//field[@name='currency_id']" position="after">
     <field name="warehouse_id"/>
+                               <button name="update_prices_based_on_warehouse" type="object" string="Update Prices" class="oe_highlight"/>
 </xpath>
 
         </field>
