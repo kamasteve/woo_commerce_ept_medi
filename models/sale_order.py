@@ -1615,23 +1615,6 @@ class ProductPricelist(models.Model):
 
     warehouse_id = fields.Many2one('stock.warehouse', string="Warehouse")
     @api.model
-    def create(self, vals):
-        # Call the super method to perform the actual creation
-        return super(ProductPricelist, self).create(vals)
-
-    def write(self, vals):
-        # Call the super method to perform the actual write
-        return super(ProductPricelist, self).write(vals)
-    @api.onchange('warehouse_id')
-    def _onchange_warehouse_id(self):
-        if self.warehouse_id:
-            self.update_prices_based_on_warehouse()
-        else:
-            # Clear prices if no warehouse is selected, but you might want to consider 
-            # whether this is appropriate for your use case
-            for item in self.item_ids:
-                item.price = 0
-
     def update_prices_based_on_warehouse(self):
         for record in self:
             if record.warehouse_id:
@@ -1640,34 +1623,34 @@ class ProductPricelist(models.Model):
                     ('warehouse_id', '=', record.warehouse_id.id),
                     ('product_tmpl_id', '!=', False)  # Only select products that have a product_tmpl_id
                 ])
-                
+
+                # Create a dictionary for existing items to avoid filtering multiple times
+                existing_items = {item.product_tmpl_id.id: item for item in record.item_ids}
+
                 # Prepare data for creating/updating pricelist items
                 for product in products:
-                    # Check if a pricelist item for this product already exists
-                    existing_item = record.item_ids.filtered(lambda item: item.product_tmpl_id.id == product.product_tmpl_id.id)
-                    
-                    if existing_item:
-                        # Log for debugging
-                        _logger.info(f"Updating existing item for product: {product.product_tmpl_id.name}, with price: {product.list_price}")
-                        
-                        # Update the existing item's fixed price
-                        existing_item.write({
-                            'fixed_price': product.list_price
-                        })
-                    else:
-                        # Log for debugging
-                        _logger.info(f"Creating new pricelist item for product: {product.product_tmpl_id.name}, with price: {product.list_price}")
-                        
-                        # Add a new pricelist item
-                        record.write({
-                            'item_ids': [(6, 0, {
-                                'compute_price':'fixed',
-                                'product_tmpl_id': product.product_tmpl_id.id,
-                                'applied_on': '1_product',
-                                'fixed_price': product.list_price,
-                                'pricelist_id': record.id,
-                            })]
-                        })
+                    # Log for debugging regardless of whether it exists or not
+                    _logger.info(f"Processing product: {product.product_tmpl_id.name}, with price: {product.list_price}")
 
+                    # Update or create new pricelist item
+                    if product.product_tmpl_id.id in existing_items:
+                        # Update the existing item's fixed price
+                        existing_item = existing_items[product.product_tmpl_id.id]
+                        existing_item.fixed_price = product.list_price
+                    else:
+                        # Create a new pricelist item
+                        record.item_ids = [(0, 0, {
+                            'compute_price': 'fixed',
+                            'product_tmpl_id': product.product_tmpl_id.id,
+                            'applied_on': '1_product',
+                            'fixed_price': product.list_price,
+                            'pricelist_id': record.id,
+                        })]
+
+                # Optional: Return a message or refresh the view
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'reload',
+                }
 
 
