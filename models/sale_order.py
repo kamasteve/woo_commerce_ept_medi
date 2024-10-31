@@ -1614,7 +1614,6 @@ class ProductPricelist(models.Model):
     _inherit = 'product.pricelist'
 
     warehouse_id = fields.Many2one('stock.warehouse', string="Warehouse")
-    @api.model
     def update_prices_based_on_warehouse(self):
         for record in self:
             if record.warehouse_id:
